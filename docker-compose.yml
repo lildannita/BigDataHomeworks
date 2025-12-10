@@ -1,0 +1,88 @@
+---
+
+services:
+  # ---------------------------------------------------------------------------
+  # Kafka (режим KRaft)
+  # ---------------------------------------------------------------------------
+  kafka:
+    image: apache/kafka
+    container_name: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 2
+
+      # Репликация и лог транзакций (обязательно в 1 ноде!)
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      # Ограничение памяти
+      KAFKA_HEAP_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka_data:/bitnami/kafka
+    networks:
+      - spark-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # Spark + Python
+  # ---------------------------------------------------------------------------
+  spark-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: spark-app
+    environment:
+      # Telegram API
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # Spark memory
+      SPARK_DRIVER_MEMORY: ${SPARK_DRIVER_MEMORY:-4g}
+      SPARK_EXECUTOR_MEMORY: ${SPARK_EXECUTOR_MEMORY:-2g}
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./workspace:/app
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    networks:
+      - spark-net
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+# -----------------------------------------------------------------------------
+# Сети
+# -----------------------------------------------------------------------------
+networks:
+  spark-net:
+    driver: bridge
+
+# -----------------------------------------------------------------------------
+# Тома
+# -----------------------------------------------------------------------------
+volumes:
+  kafka_data:
+    driver: local

@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_7d425cc97553aad517c2039390ead304 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+    <script src="https://cdn.jsdelivr.net/npm/iso8601-js-period@0.2.1/iso8601.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-timedimension@1.1.1/dist/leaflet.timedimension.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/pa7_hm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/pa7_leaflet_hm.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-timedimension@1.1.1/dist/leaflet.timedimension.control.css"/>
+    
+            <script>
+            var TDHeatmap = L.TimeDimension.Layer.extend({
+                initialize: function(data, options) {
+                    var heatmapCfg = {
+                        radius: 15,
+                        blur: 0.8,
+                        maxOpacity: 1.,
+                        scaleRadius: false,
+                        useLocalExtrema: false,
+                        latField: 'lat',
+                        lngField: 'lng',
+                        valueField: 'count',
+                        defaultWeight : 1,
+                    };
+                    heatmapCfg = $.extend({}, heatmapCfg, options.heatmapOptions || {});
+                    var layer = new HeatmapOverlay(heatmapCfg);
+                    L.TimeDimension.Layer.prototype.initialize.call(this, layer, options);
+                    this._currentLoadedTime = 0;
+                    this._currentTimeData = {
+                        data: []
+                        };
+                    this.data= data;
+                    this.defaultWeight = heatmapCfg.defaultWeight || 1;
+                },
+                onAdd: function(map) {
+                    L.TimeDimension.Layer.prototype.onAdd.call(this, map);
+                    map.addLayer(this._baseLayer);
+                    if (this._timeDimension) {
+                        this._getDataForTime(this._timeDimension.getCurrentTime());
+                    }
+                },
+                _onNewTimeLoading: function(ev) {
+                    this._getDataForTime(ev.time);
+                    return;
+                },
+                isReady: function(time) {
+                    return (this._currentLoadedTime == time);
+                },
+                _update: function() {
+                    this._baseLayer.setData(this._currentTimeData);
+                    return true;
+                },
+                _getDataForTime: function(time) {
+                    delete this._currentTimeData.data;
+                    this._currentTimeData.data = [];
+                    var data = this.data[time-1];
+                    for (var i = 0; i < data.length; i++) {
+                        this._currentTimeData.data.push({
+                                lat: data[i][0],
+                                lng: data[i][1],
+                                count: data[i].length>2 ? data[i][2] : this.defaultWeight
+                            });
+                        }
+                    this._currentLoadedTime = time;
+                    if (this._timeDimension && time == this._timeDimension.getCurrentTime() && !this._timeDimension.isLoading()) {
+                        this._update();
+                    }
+                    this.fire('timeload', {
+                        time: time
+                    });
+                }
+            });
+
+            L.Control.TimeDimensionCustom = L.Control.TimeDimension.extend({
+                initialize: function(index, options) {
+                    var playerOptions = {
+                        buffer: 1,
+                        minBufferReady: -1
+                        };
+                    options.playerOptions = $.extend({}, playerOptions, options.playerOptions || {});
+                    L.Control.TimeDimension.prototype.initialize.call(this, options);
+                    this.index = index;
+                },
+                _getDisplayDateFormat: function(date) {
+                    return this.index[date.getTime()-1];
+                }
+            });
+            </script>
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_7d425cc97553aad517c2039390ead304" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_7d425cc97553aad517c2039390ead304 = L.map(
+                "map_7d425cc97553aad517c2039390ead304",
+                {
+                    center: [40.724156322078734, -74.05099230777547],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 13,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_9d2adb9b8c786db9f70a91ad6fe1fc5d = L.tileLayer(
+                "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors \u0026copy; \u003ca href=\"https://carto.com/attributions\"\u003eCARTO\u003c/a\u003e",
+  "subdomains": "abcd",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_9d2adb9b8c786db9f70a91ad6fe1fc5d.addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+
+            var times = [1, 2, 3, 4];
+
+            map_7d425cc97553aad517c2039390ead304.timeDimension = L.timeDimension(
+                {times : times, currentTime: new Date(1)}
+            );
+
+            var heat_map_779f578a3d3469cdd7ac6fb79449a05fControl = new L.Control.TimeDimensionCustom(['06:00-11:59 (Утро)', '12:00-17:59 (День)', '18:00-23:59 (Вечер)', '00:00-05:59 (Ночь)'], {
+                autoPlay: true,
+                backwardButton: true,
+                displayDate: true,
+                forwardButton: true,
+                limitMinimumRange: 5,
+                limitSliders: true,
+                loopButton: true,
+                maxSpeed: 10,
+                minSpeed: 0.1,
+                playButton: true,
+                playReverseButton: true,
+                position: "bottomleft",
+                speedSlider: true,
+                speedStep: 0.1,
+                styleNS: "leaflet-control-timecontrol",
+                timeSlider: true,
+                timeSliderDragUpdate: false,
+                timeSteps: 1
+                })
+                .addTo(map_7d425cc97553aad517c2039390ead304);
+
+                var heat_map_779f578a3d3469cdd7ac6fb79449a05f = new TDHeatmap([[[40.7241765, -74.0506564, 0.3970208075208689], [40.71653978099194, -74.0496379137039, 0.3177352893422726], [40.734785818, -74.050443636, 0.1834445548328047], [40.72755146730012, -74.07106071710587, 0.19723488999328595], [40.721650724879986, -74.04288411140442, 0.36486563963261887], [40.7311689, -74.0575736, 0.20819138611089075], [40.721630142638354, -74.04996782541275, 0.31837012571815115], [40.7272235, -74.0337589, 0.48089072468006916], [40.748715945380226, -74.04044330120087, 0.16530380096845437], [40.7376037, -74.0524783, 0.3023219693625338], [40.73367, -74.0625, 0.41427613249958056], [40.7162469, -74.0334588, 0.587022575464975], [40.71346382669195, -74.06285852193832, 0.18490628754309785], [40.72333158646436, -74.04595255851744, 0.35835131969455236], [40.71942, -74.05099, 0.2528608687120868], [40.71517767732029, -74.03768330812454, 0.3281555957666711], [40.7211236, -74.03805095, 0.3192146102936961], [40.727595966, -74.044247311, 0.5809141935859353], [40.734961020009514, -74.0595030784607, 0.11188614099871258], [40.72601172964625, -74.05038893222809, 0.4025761704629736], [40.7177325, -74.043845, 0.4183179465772305], [40.72152515, -74.046304543, 0.39344473768231686], [40.737711, -74.066921, 0.15950184936715078], [40.7124188237569, -74.03852552175522, 0.383570237816762], [40.7242941, -74.0354826, 0.3289749618255829], [40.7182113, -74.0836394, 0.09567297464698797], [40.71113, -74.0789, 0.07607974505755533], [40.73074262530658, -74.06378388404846, 0.5972521994909207], [40.7236589, -74.0641943, 0.2509907679463383], [40.71928220070702, -74.07126188278198, 0.2713491615590498], [40.7287448, -74.0321082, 0.3295881496117805], [40.72528910781132, -74.04557168483734, 0.4067342664374539], [40.72572613742557, -74.07195925712585, 0.2255696785986151], [40.71958611647166, -74.04311746358871, 1.0], [40.7112423, -74.0557013, 0.3192146102936961], [40.742677141, -74.051788633, 0.3045400619740415], [40.7127742, -74.0364857, 0.3635721134149064], [40.74590996631558, -74.0572714805603, 0.2246727777161907], [40.7253399253558, -74.06762212514877, 0.2964772758082295], [40.71835519823214, -74.03891444206238, 0.3745145374754563], [40.722103786686034, -74.07145500183105, 0.24529493594380816], [40.71435836870427, -74.06661093235016, 0.13530201829834765], [40.7246050998869, -74.07840594649315, 0.21581064872189082], [40.7443187, -74.0439909, 0.13177398386657302], [40.71848892, -74.047726625, 0.37737893513167176], [40.70965083364061, -74.06860113143921, 0.07868894753646337], [40.71458403535893, -74.04281705617905, 0.4065687590993958], [40.72568548362901, -74.04879033565521, 0.3596636229289332], [40.7141454, -74.0335519, 0.383570237816762], [40.7192517, -74.034234, 0.5211891928279876], [40.71649, -74.04105, 0.26303671998161954]], [[40.7241765, -74.0506564, 0.38601895549556176], [40.71653978099194, -74.0496379137039, 0.2935112877324875], [40.734785818, -74.050443636, 0.13480366662971444], [40.72755146730012, -74.07106071710587, 0.1260305479531228], [40.721650724879986, -74.04288411140442, 0.3147557901458535], [40.7311689, -74.0575736, 0.19825595750705016], [40.721630142638354, -74.04996782541275, 0.32671676066807515], [40.7272235, -74.0337589, 0.5365870820234375], [40.748715945380226, -74.04044330120087, 0.1724769078829407], [40.7376037, -74.0524783, 0.24720812877252946], [40.73367, -74.0625, 0.3132554135187483], [40.7162469, -74.0334588, 0.4975373462937834], [40.71346382669195, -74.06285852193832, 0.14209554116397718], [40.72333158646436, -74.04595255851744, 0.40970196561971217], [40.71942, -74.05099, 0.32609817363037563], [40.71517767732029, -74.03768330812454, 0.2832421945960193], [40.7211236, -74.03805095, 0.36097115534333823], [40.727595966, -74.044247311, 0.5581057515228556], [40.734961020009514, -74.0595030784607, 0.1923982722572801], [40.72601172964625, -74.05038893222809, 0.3472872390931408], [40.7177325, -74.043845, 0.38039872528777663], [40.72152515, -74.046304543, 0.4284912974976609], [40.737711, -74.066921, 0.1724769078829407], [40.7124188237569, -74.03852552175522, 0.36097115534333823], [40.7242941, -74.0354826, 0.3543852541122607], [40.7182113, -74.0836394, 0.07953966358482734], [40.71113, -74.0789, 0.09844667873000133], [40.73074262530658, -74.06378388404846, 0.5281164513016189], [40.7236589, -74.0641943, 0.21921432414070668], [40.71928220070702, -74.07126188278198, 0.27381826759131966], [40.7287448, -74.0321082, 0.39293121376843226], [40.72528910781132, -74.04557168483734, 0.32733417871926235], [40.72572613742557, -74.07195925712585, 0.15992325525180032], [40.71958611647166, -74.04311746358871, 0.8291206843197068], [40.7112423, -74.0557013, 0.3474809837325311], [40.742677141, -74.051788633, 0.2594297773880473], [40.7127742, -74.0364857, 0.2884224478312605], [40.74590996631558, -74.0572714805603, 0.17823411018861895], [40.7253399253558, -74.06762212514877, 0.2772380751805002], [40.71835519823214, -74.03891444206238, 0.39344473768231686], [40.722103786686034, -74.07145500183105, 0.20427521099066157], [40.71435836870427, -74.06661093235016, 0.1281488567741799], [40.7246050998869, -74.07840594649315, 0.18993378276664716], [40.7443187, -74.0439909, 0.13678617990126077], [40.71848892, -74.047726625, 0.3721709818566851], [40.70965083364061, -74.06860113143921, 0.04493455554323814], [40.71458403535893, -74.04281705617905, 0.37844749489706214], [40.72568548362901, -74.04879033565521, 0.29828784088695065], [40.7141454, -74.0335519, 0.4119953971778482], [40.7192517, -74.034234, 0.454705731724727], [40.71649, -74.04105, 0.21829131236055443]], [[40.7241765, -74.0506564, 0.3816352231281907], [40.71653978099194, -74.0496379137039, 0.24030536502840488], [40.734785818, -74.050443636, 0.16118086247041288], [40.72755146730012, -74.07106071710587, 0.1439776833187992], [40.721650724879986, -74.04288411140442, 0.31001587026623917], [40.7311689, -74.0575736, 0.16692446522239718], [40.721630142638354, -74.04996782541275, 0.3360592093156154], [40.7272235, -74.0337589, 0.4330224162513696], [40.748715945380226, -74.04044330120087, 0.1834445548328047], [40.7376037, -74.0524783, 0.2422579653860188], [40.73367, -74.0625, 0.3047609833393118], [40.7162469, -74.0334588, 0.44558527547154736], [40.71346382669195, -74.06285852193832, 0.1923982722572801], [40.72333158646436, -74.04595255851744, 0.3847965445145602], [40.71942, -74.05099, 0.26583641561191795], [40.71517767732029, -74.03768330812454, 0.2686069315414177], [40.7211236, -74.03805095, 0.3316239203562217], [40.727595966, -74.044247311, 0.5132515075227978], [40.734961020009514, -74.0595030784607, 0.20819138611089075], [40.72601172964625, -74.05038893222809, 0.3439768842778327], [40.7177325, -74.043845, 0.3946403615210255], [40.72152515, -74.046304543, 0.3922454694172624], [40.737711, -74.066921, 0.12971488869402364], [40.7124188237569, -74.03852552175522, 0.3054227886427565], [40.7242941, -74.0354826, 0.2935112877324875], [40.7182113, -74.0836394, 0.10312129694930462], [40.71113, -74.0789, 0.05441844920067935], [40.73074262530658, -74.06378388404846, 0.5679083153324767], [40.7236589, -74.0641943, 0.2517939404566089], [40.71928220070702, -74.07126188278198, 0.2509907679463383], [40.7287448, -74.0321082, 0.33745821296476863], [40.72528910781132, -74.04557168483734, 0.3431933368268105], [40.72572613742557, -74.07195925712585, 0.20095344146684097], [40.71958611647166, -74.04311746358871, 0.8715450607047662], [40.7112423, -74.0557013, 0.2557719740951589], [40.742677141, -74.051788633, 0.27917344300652674], [40.7127742, -74.0364857, 0.24910662829951766], [40.74590996631558, -74.0572714805603, 0.14903106085830528], [40.7253399253558, -74.06762212514877, 0.30365476922318896], [40.71835519823214, -74.03891444206238, 0.33765759745068136], [40.722103786686034, -74.07145500183105, 0.2113994546792546], [40.71435836870427, -74.06661093235016, 0.10506105244513941], [40.7246050998869, -74.07840594649315, 0.2276487057609181], [40.7443187, -74.0439909, 0.14903106085830525], [40.71848892, -74.047726625, 0.3177352893422726], [40.70965083364061, -74.06860113143921, 0.023204104705092467], [40.71458403535893, -74.04281705617905, 0.40855042198132313], [40.72568548362901, -74.04879033565521, 0.36560274268621806], [40.7141454, -74.0335519, 0.29670420066028763], [40.7192517, -74.034234, 0.4047437115866275], [40.71649, -74.04105, 0.2340626002761398], [40.738046142482766, -73.99642959237099, 0.023204104705092467]], [[40.7241765, -74.0506564, 0.10506105244513941], [40.71653978099194, -74.0496379137039, 0.07868894753646337], [40.734785818, -74.050443636, 0.05441844920067935], [40.72755146730012, -74.07106071710587, 0.07953966358482734], [40.721650724879986, -74.04288411140442, 0.10047672073342048], [40.7311689, -74.0575736, 0.04493455554323814], [40.721630142638354, -74.04996782541275, 0.11831818268671664], [40.7272235, -74.0337589, 0.11426696382922182], [40.748715945380226, -74.04044330120087, 0.0434109048866426], [40.7376037, -74.0524783, 0.06247896401946405], [40.73367, -74.0625, 0.1050610524451394], [40.7162469, -74.0334588, 0.08759357437106756], [40.71346382669195, -74.06285852193832, 0.04493455554323814], [40.72333158646436, -74.04595255851744, 0.03847965445145603], [40.71942, -74.05099, 0.03847965445145603], [40.71517767732029, -74.03768330812454, 0.049223339365000666], [40.7211236, -74.03805095, 0.0434109048866426], [40.727595966, -74.044247311, 0.14350946197048195], [40.734961020009514, -74.0595030784607, 0.05801026176273116], [40.72601172964625, -74.05038893222809, 0.09281641882036987], [40.7177325, -74.043845, 0.1260305479531228], [40.72152515, -74.046304543, 0.10312129694930462], [40.737711, -74.066921, 0.023204104705092467], [40.7124188237569, -74.03852552175522, 0.08759357437106756], [40.7242941, -74.0354826, 0.0434109048866426], [40.7182113, -74.0836394, 0.04493455554323814], [40.71113, -74.0789, 0.030696145222789212], [40.73074262530658, -74.06378388404846, 0.2291221755495901], [40.7236589, -74.0641943, 0.12168335164283811], [40.71928220070702, -74.07126188278198, 0.07607974505755533], [40.7287448, -74.0321082, 0.0686386673653621], [40.72528910781132, -74.04557168483734, 0.11602052352546233], [40.72572613742557, -74.07195925712585, 0.05801026176273116], [40.71958611647166, -74.04311746358871, 0.2509907679463383], [40.7112423, -74.0557013, 0.06563111915333422], [40.742677141, -74.051788633, 0.09281641882036987], [40.7127742, -74.0364857, 0.09061492562632625], [40.74590996631558, -74.0572714805603, 0.13329743313523149], [40.7253399253558, -74.06762212514877, 0.06247896401946405], [40.71835519823214, -74.03891444206238, 0.0696123141152774], [40.722103786686034, -74.07145500183105, 0.10759300728228219], [40.71435836870427, -74.06661093235016, 0.04493455554323814], [40.7246050998869, -74.07840594649315, 0.09567297464698797], [40.7443187, -74.0439909, 0.023204104705092467], [40.71848892, -74.047726625, 0.10047672073342048], [40.71458403535893, -74.04281705617905, 0.08525732469838632], [40.72568548362901, -74.04879033565521, 0.10246655193630475], [40.7141454, -74.0335519, 0.03281555957666711], [40.7192517, -74.034234, 0.13126223830666844], [40.71649, -74.04105, 0.03847965445145603]]],
+                {heatmapOptions: {
+                        radius: 35,
+                        blur: 0.8,
+                        minOpacity: 0.3,
+                        maxOpacity: 0.9,
+                        scaleRadius: false,
+                        useLocalExtrema: false,
+                        defaultWeight: 1,
+                        gradient: {0.0: 'navy', 0.15: 'blue', 0.3: 'cyan', 0.45: 'lime', 0.6: 'yellow', 0.75: 'orange', 0.9: 'red', 1.0: 'darkred'}
+                    }
+                });
+
+        
+    
+            heat_map_779f578a3d3469cdd7ac6fb79449a05f.addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+            var circle_marker_ec5eec039564dd9ddf2eaff8874dd799 = L.circleMarker(
+                [40.7241765, -74.0506564],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.296362799893297, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_c158f01e883ab5a40f772beaddd55d15 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_3a9e987c1f96afdf5caf1d1dd66be8bc = $(`<div id="html_3a9e987c1f96afdf5caf1d1dd66be8bc" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Brunswick St</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">10.00</td>                 <td style="padding: 4px; text-align: center;">1.71</td>                 <td style="padding: 4px; text-align: center;">11.71</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">4.75</td>                 <td style="padding: 4px; text-align: center;">6.32</td>                 <td style="padding: 4px; text-align: center;">11.07</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">3.36</td>                 <td style="padding: 4px; text-align: center;">7.46</td>                 <td style="padding: 4px; text-align: center;">10.82</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">0.64</td>                 <td style="padding: 4px; text-align: center;">0.82</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_c158f01e883ab5a40f772beaddd55d15.setContent(html_3a9e987c1f96afdf5caf1d1dd66be8bc);
+            
+        
+
+        circle_marker_ec5eec039564dd9ddf2eaff8874dd799.bindPopup(popup_c158f01e883ab5a40f772beaddd55d15)
+        ;
+
+        
+    
+    
+            var circle_marker_d1bf1e07e33d71b9ceffcd341908891d = L.circleMarker(
+                [40.71653978099194, -74.0496379137039],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.162532029542589, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_617c105c4d6b63a82a8da3b8f9762f7a = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_07606eacd069f975a5fcc27f45b43683 = $(`<div id="html_07606eacd069f975a5fcc27f45b43683" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>JC Medical Center</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">4.75</td>                 <td style="padding: 4px; text-align: center;">2.75</td>                 <td style="padding: 4px; text-align: center;">7.50</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.11</td>                 <td style="padding: 4px; text-align: center;">3.29</td>                 <td style="padding: 4px; text-align: center;">6.40</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.25</td>                 <td style="padding: 4px; text-align: center;">3.04</td>                 <td style="padding: 4px; text-align: center;">4.29</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.14</td>                 <td style="padding: 4px; text-align: center;">0.32</td>                 <td style="padding: 4px; text-align: center;">0.46</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_617c105c4d6b63a82a8da3b8f9762f7a.setContent(html_07606eacd069f975a5fcc27f45b43683);
+            
+        
+
+        circle_marker_d1bf1e07e33d71b9ceffcd341908891d.bindPopup(popup_617c105c4d6b63a82a8da3b8f9762f7a)
+        ;
+
+        
+    
+    
+            var circle_marker_98aa01e666e93cd6324aa461c0e2a9cf = L.circleMarker(
+                [40.734785818, -74.050443636],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.793788104971903, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_c8a2031fee511bcecef6113bda2bb3e0 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_b79e6a0db63467defd42a297b48dec2c = $(`<div id="html_b79e6a0db63467defd42a297b48dec2c" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Christ Hospital</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">2.43</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">2.50</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.89</td>                 <td style="padding: 4px; text-align: center;">0.46</td>                 <td style="padding: 4px; text-align: center;">1.35</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.32</td>                 <td style="padding: 4px; text-align: center;">1.61</td>                 <td style="padding: 4px; text-align: center;">1.93</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">0.22</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_c8a2031fee511bcecef6113bda2bb3e0.setContent(html_b79e6a0db63467defd42a297b48dec2c);
+            
+        
+
+        circle_marker_98aa01e666e93cd6324aa461c0e2a9cf.bindPopup(popup_c8a2031fee511bcecef6113bda2bb3e0)
+        ;
+
+        
+    
+    
+            var circle_marker_55232dc0543e514fc64730e46e5dd749 = L.circleMarker(
+                [40.72755146730012, -74.07106071710587],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.805707093932792, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_884e9a170a8760464fcc1513d3d5dded = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_f7af630688b1e992050d2073f142ceb1 = $(`<div id="html_f7af630688b1e992050d2073f142ceb1" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Glenwood Ave</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">1.93</td>                 <td style="padding: 4px; text-align: center;">0.96</td>                 <td style="padding: 4px; text-align: center;">2.89</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.93</td>                 <td style="padding: 4px; text-align: center;">0.25</td>                 <td style="padding: 4px; text-align: center;">1.18</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.36</td>                 <td style="padding: 4px; text-align: center;">1.18</td>                 <td style="padding: 4px; text-align: center;">1.54</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.43</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.47</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_884e9a170a8760464fcc1513d3d5dded.setContent(html_f7af630688b1e992050d2073f142ceb1);
+            
+        
+
+        circle_marker_55232dc0543e514fc64730e46e5dd749.bindPopup(popup_884e9a170a8760464fcc1513d3d5dded)
+        ;
+
+        
+    
+    
+            var circle_marker_6dc61c8537411ac3fb7ff08cd2ab269a = L.circleMarker(
+                [40.721650724879986, -74.04288411140442],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.671792676283223, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_071c8f09fb03e313adf59e8fc63c80ef = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_e74eaea14b6f2acaf17ea37115c8a123 = $(`<div id="html_e74eaea14b6f2acaf17ea37115c8a123" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Manila & 1st</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">2.71</td>                 <td style="padding: 4px; text-align: center;">7.18</td>                 <td style="padding: 4px; text-align: center;">9.89</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.32</td>                 <td style="padding: 4px; text-align: center;">4.04</td>                 <td style="padding: 4px; text-align: center;">7.36</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">5.14</td>                 <td style="padding: 4px; text-align: center;">2.00</td>                 <td style="padding: 4px; text-align: center;">7.14</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.46</td>                 <td style="padding: 4px; text-align: center;">0.29</td>                 <td style="padding: 4px; text-align: center;">0.75</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_071c8f09fb03e313adf59e8fc63c80ef.setContent(html_e74eaea14b6f2acaf17ea37115c8a123);
+            
+        
+
+        circle_marker_6dc61c8537411ac3fb7ff08cd2ab269a.bindPopup(popup_071c8f09fb03e313adf59e8fc63c80ef)
+        ;
+
+        
+    
+    
+            var circle_marker_dd713c43fcb2525a3e4273c9dac33da1 = L.circleMarker(
+                [40.7311689, -74.0575736],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.117379252751833, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_95f5cd3daac2b479ae435d71bc58c4cb = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_e4ed1e848b839748b50fa371d5df6239 = $(`<div id="html_e4ed1e848b839748b50fa371d5df6239" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Hilltop</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">1.54</td>                 <td style="padding: 4px; text-align: center;">1.68</td>                 <td style="padding: 4px; text-align: center;">3.22</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">1.96</td>                 <td style="padding: 4px; text-align: center;">0.96</td>                 <td style="padding: 4px; text-align: center;">2.92</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.11</td>                 <td style="padding: 4px; text-align: center;">0.96</td>                 <td style="padding: 4px; text-align: center;">2.07</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.15</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_95f5cd3daac2b479ae435d71bc58c4cb.setContent(html_e4ed1e848b839748b50fa371d5df6239);
+            
+        
+
+        circle_marker_dd713c43fcb2525a3e4273c9dac33da1.bindPopup(popup_95f5cd3daac2b479ae435d71bc58c4cb)
+        ;
+
+        
+    
+    
+            var circle_marker_c8fd46d941633944bb2f3007c24969fb = L.circleMarker(
+                [40.721630142638354, -74.04996782541275],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.653490335835447, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_cb84d431316a5c8ed885c20315244989 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_8832a104a210bf4ee5f6739f814dddf7 = $(`<div id="html_8832a104a210bf4ee5f6739f814dddf7" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Dixon Mills</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">6.96</td>                 <td style="padding: 4px; text-align: center;">0.57</td>                 <td style="padding: 4px; text-align: center;">7.53</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.11</td>                 <td style="padding: 4px; text-align: center;">4.82</td>                 <td style="padding: 4px; text-align: center;">7.93</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">2.14</td>                 <td style="padding: 4px; text-align: center;">6.25</td>                 <td style="padding: 4px; text-align: center;">8.39</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.86</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">1.04</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_cb84d431316a5c8ed885c20315244989.setContent(html_8832a104a210bf4ee5f6739f814dddf7);
+            
+        
+
+        circle_marker_c8fd46d941633944bb2f3007c24969fb.bindPopup(popup_cb84d431316a5c8ed885c20315244989)
+        ;
+
+        
+    
+    
+            var circle_marker_c51091493fa4df7f85d51b0fdf1d1abc = L.circleMarker(
+                [40.7272235, -74.0337589],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.354890649106881, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_9e859c19f034b878e983295e4b704725 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_bb5e770056bd2962d5a744c679ac4964 = $(`<div id="html_bb5e770056bd2962d5a744c679ac4964" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Newport PATH</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">5.11</td>                 <td style="padding: 4px; text-align: center;">12.07</td>                 <td style="padding: 4px; text-align: center;">17.18</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">12.75</td>                 <td style="padding: 4px; text-align: center;">8.64</td>                 <td style="padding: 4px; text-align: center;">21.39</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">9.00</td>                 <td style="padding: 4px; text-align: center;">4.93</td>                 <td style="padding: 4px; text-align: center;">13.93</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.29</td>                 <td style="padding: 4px; text-align: center;">0.68</td>                 <td style="padding: 4px; text-align: center;">0.97</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_9e859c19f034b878e983295e4b704725.setContent(html_bb5e770056bd2962d5a744c679ac4964);
+            
+        
+
+        circle_marker_c51091493fa4df7f85d51b0fdf1d1abc.bindPopup(popup_9e859c19f034b878e983295e4b704725)
+        ;
+
+        
+    
+    
+            var circle_marker_2ef5044d49647818d8233a24f4806fed = L.circleMarker(
+                [40.748715945380226, -74.04044330120087],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.920833554601847, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_110ef4cb3ef18a723bd25d1ac10a79a1 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_c36bcf15f15a76ec45cb3a8a598db6f8 = $(`<div id="html_c36bcf15f15a76ec45cb3a8a598db6f8" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Heights Elevator</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">1.14</td>                 <td style="padding: 4px; text-align: center;">0.89</td>                 <td style="padding: 4px; text-align: center;">2.03</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">1.50</td>                 <td style="padding: 4px; text-align: center;">0.71</td>                 <td style="padding: 4px; text-align: center;">2.21</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.93</td>                 <td style="padding: 4px; text-align: center;">1.57</td>                 <td style="padding: 4px; text-align: center;">2.50</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.14</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_110ef4cb3ef18a723bd25d1ac10a79a1.setContent(html_c36bcf15f15a76ec45cb3a8a598db6f8);
+            
+        
+
+        circle_marker_2ef5044d49647818d8233a24f4806fed.bindPopup(popup_110ef4cb3ef18a723bd25d1ac10a79a1)
+        ;
+
+        
+    
+    
+            var circle_marker_c8ac2d65286160b12852ab3d1fbcb716 = L.circleMarker(
+                [40.7376037, -74.0524783],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.927412359442729, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_6c75b6587761d1892931b7168520cb81 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_17a37a4234aa3e91146484f7af8d6653 = $(`<div id="html_17a37a4234aa3e91146484f7af8d6653" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Oakland Ave</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">6.25</td>                 <td style="padding: 4px; text-align: center;">0.54</td>                 <td style="padding: 4px; text-align: center;">6.79</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">2.18</td>                 <td style="padding: 4px; text-align: center;">2.36</td>                 <td style="padding: 4px; text-align: center;">4.54</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.86</td>                 <td style="padding: 4px; text-align: center;">3.50</td>                 <td style="padding: 4px; text-align: center;">4.36</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">0.29</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_6c75b6587761d1892931b7168520cb81.setContent(html_17a37a4234aa3e91146484f7af8d6653);
+            
+        
+
+        circle_marker_c8ac2d65286160b12852ab3d1fbcb716.bindPopup(popup_6c75b6587761d1892931b7168520cb81)
+        ;
+
+        
+    
+    
+            var circle_marker_545342d713eab4b554ef410cfeffe9ce = L.circleMarker(
+                [40.73367, -74.0625],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.858382200943682, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_bf5880c1fb5051e0fda952a751c4acb6 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_54a476b45e7f1bb045c24b4decb70048 = $(`<div id="html_54a476b45e7f1bb045c24b4decb70048" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Journal Square</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">3.00</td>                 <td style="padding: 4px; text-align: center;">9.75</td>                 <td style="padding: 4px; text-align: center;">12.75</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">4.50</td>                 <td style="padding: 4px; text-align: center;">2.79</td>                 <td style="padding: 4px; text-align: center;">7.29</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">6.29</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">6.90</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.71</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.82</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_bf5880c1fb5051e0fda952a751c4acb6.setContent(html_54a476b45e7f1bb045c24b4decb70048);
+            
+        
+
+        circle_marker_545342d713eab4b554ef410cfeffe9ce.bindPopup(popup_bf5880c1fb5051e0fda952a751c4acb6)
+        ;
+
+        
+    
+    
+            var circle_marker_8522d887a5383634941fab7d865d4b2d = L.circleMarker(
+                [40.7162469, -74.0334588],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.639745113243148, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_3ebda56bdc72a865e0381ecfb5098945 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_61efd8ee5f5ecd5436fea2a39412d509 = $(`<div id="html_61efd8ee5f5ecd5436fea2a39412d509" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Exchange Place</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">1.89</td>                 <td style="padding: 4px; text-align: center;">23.71</td>                 <td style="padding: 4px; text-align: center;">25.60</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">12.50</td>                 <td style="padding: 4px; text-align: center;">5.89</td>                 <td style="padding: 4px; text-align: center;">18.39</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">12.32</td>                 <td style="padding: 4px; text-align: center;">2.43</td>                 <td style="padding: 4px; text-align: center;">14.75</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.32</td>                 <td style="padding: 4px; text-align: center;">0.25</td>                 <td style="padding: 4px; text-align: center;">0.57</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_3ebda56bdc72a865e0381ecfb5098945.setContent(html_61efd8ee5f5ecd5436fea2a39412d509);
+            
+        
+
+        circle_marker_8522d887a5383634941fab7d865d4b2d.bindPopup(popup_3ebda56bdc72a865e0381ecfb5098945)
+        ;
+
+        
+    
+    
+            var circle_marker_5eae32bcef4fab77425e7338ca53fc3c = L.circleMarker(
+                [40.71346382669195, -74.06285852193832],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.929191100471842, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_37467632939ddda3e5eab991c82e45fa = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_9e9995efcfa0860b44d19d284dbbfb84 = $(`<div id="html_9e9995efcfa0860b44d19d284dbbfb84" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Lafayette Park</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">2.43</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">2.54</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.64</td>                 <td style="padding: 4px; text-align: center;">0.86</td>                 <td style="padding: 4px; text-align: center;">1.50</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">2.64</td>                 <td style="padding: 4px; text-align: center;">2.75</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.15</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_37467632939ddda3e5eab991c82e45fa.setContent(html_9e9995efcfa0860b44d19d284dbbfb84);
+            
+        
+
+        circle_marker_5eae32bcef4fab77425e7338ca53fc3c.bindPopup(popup_37467632939ddda3e5eab991c82e45fa)
+        ;
+
+        
+    
+    
+            var circle_marker_581bcc976e460d844b40972c0cd57a5e = L.circleMarker(
+                [40.72333158646436, -74.04595255851744],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.21444779606695, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_e10fbb5902d36e6d363eb73cf81f6e2d = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_81a620836e1b8f3a555028f1bd1cc47b = $(`<div id="html_81a620836e1b8f3a555028f1bd1cc47b" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Jersey & 3rd</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">6.93</td>                 <td style="padding: 4px; text-align: center;">2.61</td>                 <td style="padding: 4px; text-align: center;">9.54</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">5.61</td>                 <td style="padding: 4px; text-align: center;">6.86</td>                 <td style="padding: 4px; text-align: center;">12.47</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">4.29</td>                 <td style="padding: 4px; text-align: center;">6.71</td>                 <td style="padding: 4px; text-align: center;">11.00</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.11</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_e10fbb5902d36e6d363eb73cf81f6e2d.setContent(html_81a620836e1b8f3a555028f1bd1cc47b);
+            
+        
+
+        circle_marker_581bcc976e460d844b40972c0cd57a5e.bindPopup(popup_e10fbb5902d36e6d363eb73cf81f6e2d)
+        ;
+
+        
+    
+    
+            var circle_marker_c3fd9fe5277680313f35454e46115711 = L.circleMarker(
+                [40.71942, -74.05099],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.1077950526955025, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_415529f45a049983368d909eed30b490 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_dae8d37afafc3b137f82aa6b532786ec = $(`<div id="html_dae8d37afafc3b137f82aa6b532786ec" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Montgomery St</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">2.21</td>                 <td style="padding: 4px; text-align: center;">2.54</td>                 <td style="padding: 4px; text-align: center;">4.75</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.86</td>                 <td style="padding: 4px; text-align: center;">4.04</td>                 <td style="padding: 4px; text-align: center;">7.90</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">2.71</td>                 <td style="padding: 4px; text-align: center;">2.54</td>                 <td style="padding: 4px; text-align: center;">5.25</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.11</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_415529f45a049983368d909eed30b490.setContent(html_dae8d37afafc3b137f82aa6b532786ec);
+            
+        
+
+        circle_marker_c3fd9fe5277680313f35454e46115711.bindPopup(popup_415529f45a049983368d909eed30b490)
+        ;
+
+        
+    
+    
+            var circle_marker_082d69e08727a3482d0baf501af28136 = L.circleMarker(
+                [40.71517767732029, -74.03768330812454],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.233797494896789, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_13e9ca807ccf8661f3cae58b7d9608b5 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_99166c8dd7b58b6ecc4fd234c2f798c5 = $(`<div id="html_99166c8dd7b58b6ecc4fd234c2f798c5" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Grand St</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">5.39</td>                 <td style="padding: 4px; text-align: center;">2.61</td>                 <td style="padding: 4px; text-align: center;">8.00</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">2.39</td>                 <td style="padding: 4px; text-align: center;">3.57</td>                 <td style="padding: 4px; text-align: center;">5.96</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.61</td>                 <td style="padding: 4px; text-align: center;">3.75</td>                 <td style="padding: 4px; text-align: center;">5.36</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.18</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_13e9ca807ccf8661f3cae58b7d9608b5.setContent(html_99166c8dd7b58b6ecc4fd234c2f798c5);
+            
+        
+
+        circle_marker_082d69e08727a3482d0baf501af28136.bindPopup(popup_13e9ca807ccf8661f3cae58b7d9608b5)
+        ;
+
+        
+    
+    
+            var circle_marker_5e0c7004264719e128a9863c254a1b33 = L.circleMarker(
+                [40.7211236, -74.03805095],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.702336932424551, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_bd27f5eb1ba176768ce4014db59487da = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_51f3fc47de9f63d6a1891636ef250ee4 = $(`<div id="html_51f3fc47de9f63d6a1891636ef250ee4" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Warren St</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">4.96</td>                 <td style="padding: 4px; text-align: center;">2.61</td>                 <td style="padding: 4px; text-align: center;">7.57</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">4.36</td>                 <td style="padding: 4px; text-align: center;">5.32</td>                 <td style="padding: 4px; text-align: center;">9.68</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">3.46</td>                 <td style="padding: 4px; text-align: center;">4.71</td>                 <td style="padding: 4px; text-align: center;">8.17</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.14</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_bd27f5eb1ba176768ce4014db59487da.setContent(html_51f3fc47de9f63d6a1891636ef250ee4);
+            
+        
+
+        circle_marker_5e0c7004264719e128a9863c254a1b33.bindPopup(popup_bd27f5eb1ba176768ce4014db59487da)
+        ;
+
+        
+    
+    
+            var circle_marker_e7015c7613fde1f53b3143e1142f1fc7 = L.circleMarker(
+                [40.727595966, -74.044247311],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10.096680890854831, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_aa999dafa5e9cd2da9fb97dcf6505774 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_16a588cb9688eebf2b75f920cdb2c963 = $(`<div id="html_16a588cb9688eebf2b75f920cdb2c963" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Hamilton Park</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">21.32</td>                 <td style="padding: 4px; text-align: center;">3.75</td>                 <td style="padding: 4px; text-align: center;">25.07</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">8.07</td>                 <td style="padding: 4px; text-align: center;">15.07</td>                 <td style="padding: 4px; text-align: center;">23.14</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">3.64</td>                 <td style="padding: 4px; text-align: center;">15.93</td>                 <td style="padding: 4px; text-align: center;">19.57</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">1.14</td>                 <td style="padding: 4px; text-align: center;">0.39</td>                 <td style="padding: 4px; text-align: center;">1.53</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_aa999dafa5e9cd2da9fb97dcf6505774.setContent(html_16a588cb9688eebf2b75f920cdb2c963);
+            
+        
+
+        circle_marker_e7015c7613fde1f53b3143e1142f1fc7.bindPopup(popup_aa999dafa5e9cd2da9fb97dcf6505774)
+        ;
+
+        
+    
+    
+            var circle_marker_388937d8f192e5ea340c86d82bf248c5 = L.circleMarker(
+                [40.734961020009514, -74.0595030784607],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.958161626100769, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_fbea6d593029eaffe5661a5c45d91fb7 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_fcde16bfc8e98bb1a26a4f6423674c81 = $(`<div id="html_fcde16bfc8e98bb1a26a4f6423674c81" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>5 Corners Library</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">0.32</td>                 <td style="padding: 4px; text-align: center;">0.93</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.93</td>                 <td style="padding: 4px; text-align: center;">1.82</td>                 <td style="padding: 4px; text-align: center;">2.75</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">2.18</td>                 <td style="padding: 4px; text-align: center;">1.04</td>                 <td style="padding: 4px; text-align: center;">3.22</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.25</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.25</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_fbea6d593029eaffe5661a5c45d91fb7.setContent(html_fcde16bfc8e98bb1a26a4f6423674c81);
+            
+        
+
+        circle_marker_388937d8f192e5ea340c86d82bf248c5.bindPopup(popup_fbea6d593029eaffe5661a5c45d91fb7)
+        ;
+
+        
+    
+    
+            var circle_marker_0f734be6688889d0f3eecfa0fc6d2d63 = L.circleMarker(
+                [40.72601172964625, -74.05038893222809],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.039675596409165, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_eb3e6c61269465d529a834f60336d543 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_e31be1dd5626119238024fd5d952e02e = $(`<div id="html_e31be1dd5626119238024fd5d952e02e" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Brunswick & 6th</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">10.11</td>                 <td style="padding: 4px; text-align: center;">1.93</td>                 <td style="padding: 4px; text-align: center;">12.04</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.25</td>                 <td style="padding: 4px; text-align: center;">5.71</td>                 <td style="padding: 4px; text-align: center;">8.96</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">2.29</td>                 <td style="padding: 4px; text-align: center;">6.50</td>                 <td style="padding: 4px; text-align: center;">8.79</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.50</td>                 <td style="padding: 4px; text-align: center;">0.14</td>                 <td style="padding: 4px; text-align: center;">0.64</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_eb3e6c61269465d529a834f60336d543.setContent(html_e31be1dd5626119238024fd5d952e02e);
+            
+        
+
+        circle_marker_0f734be6688889d0f3eecfa0fc6d2d63.bindPopup(popup_eb3e6c61269465d529a834f60336d543)
+        ;
+
+        
+    
+    
+            var circle_marker_1ea8be8c3a51964422cc22feb3786bc2 = L.circleMarker(
+                [40.7177325, -74.043845],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.42427330082132, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_cee3bd63d04882954108d7ef58d3f927 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_25fe260234acc3d6f38c479969d9586f = $(`<div id="html_25fe260234acc3d6f38c479969d9586f" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>City Hall</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">3.32</td>                 <td style="padding: 4px; text-align: center;">9.68</td>                 <td style="padding: 4px; text-align: center;">13.00</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">5.71</td>                 <td style="padding: 4px; text-align: center;">5.04</td>                 <td style="padding: 4px; text-align: center;">10.75</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">7.64</td>                 <td style="padding: 4px; text-align: center;">3.93</td>                 <td style="padding: 4px; text-align: center;">11.57</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">1.07</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">1.18</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_cee3bd63d04882954108d7ef58d3f927.setContent(html_25fe260234acc3d6f38c479969d9586f);
+            
+        
+
+        circle_marker_1ea8be8c3a51964422cc22feb3786bc2.bindPopup(popup_cee3bd63d04882954108d7ef58d3f927)
+        ;
+
+        
+    
+    
+            var circle_marker_50f9770de18d6ed3b595cb5bc8dbacca = L.circleMarker(
+                [40.72152515, -74.046304543],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.476091423711196, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_2175acf91b3b6461530efec821df4fe2 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_20637757abc4c437408b637ba35d5140 = $(`<div id="html_20637757abc4c437408b637ba35d5140" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Newark Ave</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">6.29</td>                 <td style="padding: 4px; text-align: center;">5.21</td>                 <td style="padding: 4px; text-align: center;">11.50</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">5.39</td>                 <td style="padding: 4px; text-align: center;">8.25</td>                 <td style="padding: 4px; text-align: center;">13.64</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">5.64</td>                 <td style="padding: 4px; text-align: center;">5.79</td>                 <td style="padding: 4px; text-align: center;">11.43</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">0.79</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_2175acf91b3b6461530efec821df4fe2.setContent(html_20637757abc4c437408b637ba35d5140);
+            
+        
+
+        circle_marker_50f9770de18d6ed3b595cb5bc8dbacca.bindPopup(popup_2175acf91b3b6461530efec821df4fe2)
+        ;
+
+        
+    
+    
+            var circle_marker_4e4824fda41c98997331b7284567e981 = L.circleMarker(
+                [40.737711, -74.066921],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.700160403033272, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_2de806959a6777fb7041ec981d681700 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_e5b5e37c4da3391479d26e8f496dc056 = $(`<div id="html_e5b5e37c4da3391479d26e8f496dc056" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Dey St</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">0.25</td>                 <td style="padding: 4px; text-align: center;">1.64</td>                 <td style="padding: 4px; text-align: center;">1.89</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">1.21</td>                 <td style="padding: 4px; text-align: center;">1.00</td>                 <td style="padding: 4px; text-align: center;">2.21</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.36</td>                 <td style="padding: 4px; text-align: center;">0.89</td>                 <td style="padding: 4px; text-align: center;">1.25</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.04</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_2de806959a6777fb7041ec981d681700.setContent(html_e5b5e37c4da3391479d26e8f496dc056);
+            
+        
+
+        circle_marker_4e4824fda41c98997331b7284567e981.bindPopup(popup_2de806959a6777fb7041ec981d681700)
+        ;
+
+        
+    
+    
+            var circle_marker_95aff15d81636b1c8fef80ffe1616592 = L.circleMarker(
+                [40.7124188237569, -74.03852552175522],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.882629387612056, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_7105d192cb27002439cce8100736136d = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_05560fca06a274cefe863fa26890c584 = $(`<div id="html_05560fca06a274cefe863fa26890c584" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Morris Canal</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">9.86</td>                 <td style="padding: 4px; text-align: center;">1.07</td>                 <td style="padding: 4px; text-align: center;">10.93</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.89</td>                 <td style="padding: 4px; text-align: center;">5.79</td>                 <td style="padding: 4px; text-align: center;">9.68</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.39</td>                 <td style="padding: 4px; text-align: center;">5.54</td>                 <td style="padding: 4px; text-align: center;">6.93</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.25</td>                 <td style="padding: 4px; text-align: center;">0.32</td>                 <td style="padding: 4px; text-align: center;">0.57</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_7105d192cb27002439cce8100736136d.setContent(html_05560fca06a274cefe863fa26890c584);
+            
+        
+
+        circle_marker_95aff15d81636b1c8fef80ffe1616592.bindPopup(popup_7105d192cb27002439cce8100736136d)
+        ;
+
+        
+    
+    
+            var circle_marker_aac9641e89daaa490a695e0fa9bc6fd3 = L.circleMarker(
+                [40.7242941, -74.0354826],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.580843186411782, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_911f2812ed24c69e1a8d56c1a6a3ac00 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_417585a6c260980e1d9498b06f3ada88 = $(`<div id="html_417585a6c260980e1d9498b06f3ada88" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Washington St</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">2.79</td>                 <td style="padding: 4px; text-align: center;">5.25</td>                 <td style="padding: 4px; text-align: center;">8.04</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">4.79</td>                 <td style="padding: 4px; text-align: center;">4.54</td>                 <td style="padding: 4px; text-align: center;">9.33</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">3.86</td>                 <td style="padding: 4px; text-align: center;">2.54</td>                 <td style="padding: 4px; text-align: center;">6.40</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.14</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_911f2812ed24c69e1a8d56c1a6a3ac00.setContent(html_417585a6c260980e1d9498b06f3ada88);
+            
+        
+
+        circle_marker_aac9641e89daaa490a695e0fa9bc6fd3.bindPopup(popup_911f2812ed24c69e1a8d56c1a6a3ac00)
+        ;
+
+        
+    
+    
+            var circle_marker_8afabc59b0185f2b4e99629d5c141947 = L.circleMarker(
+                [40.7182113, -74.0836394],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.058689626375917, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_1877a18e5942c13a0638f27c9784d852 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_bcf18265d12426cc4d5539f28fd78563 = $(`<div id="html_bcf18265d12426cc4d5539f28fd78563" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Union St</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.68</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.36</td>                 <td style="padding: 4px; text-align: center;">0.47</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">0.79</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.15</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_1877a18e5942c13a0638f27c9784d852.setContent(html_bcf18265d12426cc4d5539f28fd78563);
+            
+        
+
+        circle_marker_8afabc59b0185f2b4e99629d5c141947.bindPopup(popup_1877a18e5942c13a0638f27c9784d852)
+        ;
+
+        
+    
+    
+            var circle_marker_fe122bfda4016ac24f3ad6a4b47b2c35 = L.circleMarker(
+                [40.71113, -74.0789],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 4.8787731127710305, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_bc54d9f8009d48a34c3abe864d48d475 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_7ed79370f1c8c4b79c73d752f7d857d3 = $(`<div id="html_7ed79370f1c8c4b79c73d752f7d857d3" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Jackson Square</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">0.32</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.43</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.36</td>                 <td style="padding: 4px; text-align: center;">0.36</td>                 <td style="padding: 4px; text-align: center;">0.72</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">0.22</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.07</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_bc54d9f8009d48a34c3abe864d48d475.setContent(html_7ed79370f1c8c4b79c73d752f7d857d3);
+            
+        
+
+        circle_marker_fe122bfda4016ac24f3ad6a4b47b2c35.bindPopup(popup_bc54d9f8009d48a34c3abe864d48d475)
+        ;
+
+        
+    
+    
+            var circle_marker_1368ddf0926a1dd291ffd3c5d9e253eb = L.circleMarker(
+                [40.73074262530658, -74.06378388404846],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 10.345380162982686, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_76defdf76914e75ed35c8d903d8a745a = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_43327236c19cf36eafd2d058bf68f7b8 = $(`<div id="html_43327236c19cf36eafd2d058bf68f7b8" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Sip Ave</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">4.68</td>                 <td style="padding: 4px; text-align: center;">21.82</td>                 <td style="padding: 4px; text-align: center;">26.50</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">12.61</td>                 <td style="padding: 4px; text-align: center;">8.11</td>                 <td style="padding: 4px; text-align: center;">20.72</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">19.57</td>                 <td style="padding: 4px; text-align: center;">4.39</td>                 <td style="padding: 4px; text-align: center;">23.96</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">1.79</td>                 <td style="padding: 4px; text-align: center;">2.11</td>                 <td style="padding: 4px; text-align: center;">3.90</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_76defdf76914e75ed35c8d903d8a745a.setContent(html_43327236c19cf36eafd2d058bf68f7b8);
+            
+        
+
+        circle_marker_1368ddf0926a1dd291ffd3c5d9e253eb.bindPopup(popup_76defdf76914e75ed35c8d903d8a745a)
+        ;
+
+        
+    
+    
+            var circle_marker_bf03ed51677567736c4bba9f2da190ad = L.circleMarker(
+                [40.7236589, -74.0641943],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.745921862917019, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_aaa790bc63337801d0f7f6ff7f2eb8f9 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_182560d76333d7925f4b0154d0adee55 = $(`<div id="html_182560d76333d7925f4b0154d0adee55" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Baldwin at Montgomery</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">3.89</td>                 <td style="padding: 4px; text-align: center;">0.79</td>                 <td style="padding: 4px; text-align: center;">4.68</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">1.86</td>                 <td style="padding: 4px; text-align: center;">1.71</td>                 <td style="padding: 4px; text-align: center;">3.57</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.71</td>                 <td style="padding: 4px; text-align: center;">4.00</td>                 <td style="padding: 4px; text-align: center;">4.71</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.96</td>                 <td style="padding: 4px; text-align: center;">0.14</td>                 <td style="padding: 4px; text-align: center;">1.10</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_aaa790bc63337801d0f7f6ff7f2eb8f9.setContent(html_182560d76333d7925f4b0154d0adee55);
+            
+        
+
+        circle_marker_bf03ed51677567736c4bba9f2da190ad.bindPopup(popup_aaa790bc63337801d0f7f6ff7f2eb8f9)
+        ;
+
+        
+    
+    
+            var circle_marker_62d9b043346526ce8e87282b55d5398d = L.circleMarker(
+                [40.71928220070702, -74.07126188278198],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.942942507464535, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_114cd0cf21e5ccc7b2a35fd968eeb504 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_cd2e8c31d156230879e9f6c221bfab8a = $(`<div id="html_cd2e8c31d156230879e9f6c221bfab8a" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Astor Place</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">5.11</td>                 <td style="padding: 4px; text-align: center;">0.36</td>                 <td style="padding: 4px; text-align: center;">5.47</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">2.25</td>                 <td style="padding: 4px; text-align: center;">3.32</td>                 <td style="padding: 4px; text-align: center;">5.57</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">4.07</td>                 <td style="padding: 4px; text-align: center;">4.68</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">0.25</td>                 <td style="padding: 4px; text-align: center;">0.43</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_114cd0cf21e5ccc7b2a35fd968eeb504.setContent(html_cd2e8c31d156230879e9f6c221bfab8a);
+            
+        
+
+        circle_marker_62d9b043346526ce8e87282b55d5398d.bindPopup(popup_114cd0cf21e5ccc7b2a35fd968eeb504)
+        ;
+
+        
+    
+    
+            var circle_marker_7d8e09a25294935e1619840852373605 = L.circleMarker(
+                [40.7287448, -74.0321082],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.8991688847971595, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_8a6e3e206382b6b8109aad9c2001e6d7 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_bf73be195ee381256b4d3cf36b03828c = $(`<div id="html_bf73be195ee381256b4d3cf36b03828c" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Newport Pkwy</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">4.14</td>                 <td style="padding: 4px; text-align: center;">3.93</td>                 <td style="padding: 4px; text-align: center;">8.07</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">5.29</td>                 <td style="padding: 4px; text-align: center;">6.18</td>                 <td style="padding: 4px; text-align: center;">11.47</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">3.50</td>                 <td style="padding: 4px; text-align: center;">4.96</td>                 <td style="padding: 4px; text-align: center;">8.46</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.21</td>                 <td style="padding: 4px; text-align: center;">0.14</td>                 <td style="padding: 4px; text-align: center;">0.35</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_8a6e3e206382b6b8109aad9c2001e6d7.setContent(html_bf73be195ee381256b4d3cf36b03828c);
+            
+        
+
+        circle_marker_7d8e09a25294935e1619840852373605.bindPopup(popup_8a6e3e206382b6b8109aad9c2001e6d7)
+        ;
+
+        
+    
+    
+            var circle_marker_80075450f05a2440c270239d3ae68184 = L.circleMarker(
+                [40.72528910781132, -74.04557168483734],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.011032139947705, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_2b75789457b09a0ab4fa7e98290612dd = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_835493fbf2a24476dbb31d4a557b460b = $(`<div id="html_835493fbf2a24476dbb31d4a557b460b" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Jersey & 6th St</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">11.00</td>                 <td style="padding: 4px; text-align: center;">1.29</td>                 <td style="padding: 4px; text-align: center;">12.29</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.50</td>                 <td style="padding: 4px; text-align: center;">4.46</td>                 <td style="padding: 4px; text-align: center;">7.96</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.96</td>                 <td style="padding: 4px; text-align: center;">6.79</td>                 <td style="padding: 4px; text-align: center;">8.75</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">0.39</td>                 <td style="padding: 4px; text-align: center;">1.00</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_2b75789457b09a0ab4fa7e98290612dd.setContent(html_835493fbf2a24476dbb31d4a557b460b);
+            
+        
+
+        circle_marker_80075450f05a2440c270239d3ae68184.bindPopup(popup_2b75789457b09a0ab4fa7e98290612dd)
+        ;
+
+        
+    
+    
+            var circle_marker_c8dbfd5f256f0370c4c9db9d76f306b5 = L.circleMarker(
+                [40.72572613742557, -74.07195925712585],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.188372476912942, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_f8cad5337c21e49af45a737055f3d769 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_0dd9b62fecf18b83742f9ebb4e53d854 = $(`<div id="html_0dd9b62fecf18b83742f9ebb4e53d854" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Fairmount Ave</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">3.57</td>                 <td style="padding: 4px; text-align: center;">0.21</td>                 <td style="padding: 4px; text-align: center;">3.78</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">1.11</td>                 <td style="padding: 4px; text-align: center;">0.79</td>                 <td style="padding: 4px; text-align: center;">1.90</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.29</td>                 <td style="padding: 4px; text-align: center;">2.71</td>                 <td style="padding: 4px; text-align: center;">3.00</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.21</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.25</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_f8cad5337c21e49af45a737055f3d769.setContent(html_0dd9b62fecf18b83742f9ebb4e53d854);
+            
+        
+
+        circle_marker_c8dbfd5f256f0370c4c9db9d76f306b5.bindPopup(popup_f8cad5337c21e49af45a737055f3d769)
+        ;
+
+        
+    
+    
+            var circle_marker_bd3639121e58eff13566d0ca09dac777 = L.circleMarker(
+                [40.71958611647166, -74.04311746358871],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 14.0, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_442c5ba130c3b0174f923778c6f28981 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_224768275fa449d113acaed93c1dd845 = $(`<div id="html_224768275fa449d113acaed93c1dd845" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Grove St PATH</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">10.25</td>                 <td style="padding: 4px; text-align: center;">64.04</td>                 <td style="padding: 4px; text-align: center;">74.29</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">30.86</td>                 <td style="padding: 4px; text-align: center;">20.21</td>                 <td style="padding: 4px; text-align: center;">51.07</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">44.79</td>                 <td style="padding: 4px; text-align: center;">11.64</td>                 <td style="padding: 4px; text-align: center;">56.43</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">1.50</td>                 <td style="padding: 4px; text-align: center;">3.18</td>                 <td style="padding: 4px; text-align: center;">4.68</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_442c5ba130c3b0174f923778c6f28981.setContent(html_224768275fa449d113acaed93c1dd845);
+            
+        
+
+        circle_marker_bd3639121e58eff13566d0ca09dac777.bindPopup(popup_442c5ba130c3b0174f923778c6f28981)
+        ;
+
+        
+    
+    
+            var circle_marker_299231bf09b7ec56b6b6204da49d060b = L.circleMarker(
+                [40.7112423, -74.0557013],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.412914629938766, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_dd7d7e4957faf4d7c75effa8f6256755 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_b4290d844b1bd43d9e3d884ee54b33d1 = $(`<div id="html_b4290d844b1bd43d9e3d884ee54b33d1" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Liberty Light Rail</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">5.39</td>                 <td style="padding: 4px; text-align: center;">2.18</td>                 <td style="padding: 4px; text-align: center;">7.57</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.18</td>                 <td style="padding: 4px; text-align: center;">5.79</td>                 <td style="padding: 4px; text-align: center;">8.97</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.29</td>                 <td style="padding: 4px; text-align: center;">3.57</td>                 <td style="padding: 4px; text-align: center;">4.86</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.21</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.32</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_dd7d7e4957faf4d7c75effa8f6256755.setContent(html_b4290d844b1bd43d9e3d884ee54b33d1);
+            
+        
+
+        circle_marker_299231bf09b7ec56b6b6204da49d060b.bindPopup(popup_dd7d7e4957faf4d7c75effa8f6256755)
+        ;
+
+        
+    
+    
+            var circle_marker_0564ae8ce5a715f3096cba27fe74054f = L.circleMarker(
+                [40.742677141, -74.051788633],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.134427646441713, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_ae236c91d6b4569c4674d1b350456255 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_cad20c0c62206dedc8b4c0244172dbbf = $(`<div id="html_cad20c0c62206dedc8b4c0244172dbbf" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Pershing Field</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">6.50</td>                 <td style="padding: 4px; text-align: center;">0.39</td>                 <td style="padding: 4px; text-align: center;">6.89</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">1.36</td>                 <td style="padding: 4px; text-align: center;">3.64</td>                 <td style="padding: 4px; text-align: center;">5.00</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.36</td>                 <td style="padding: 4px; text-align: center;">4.43</td>                 <td style="padding: 4px; text-align: center;">5.79</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.43</td>                 <td style="padding: 4px; text-align: center;">0.21</td>                 <td style="padding: 4px; text-align: center;">0.64</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_ae236c91d6b4569c4674d1b350456255.setContent(html_cad20c0c62206dedc8b4c0244172dbbf);
+            
+        
+
+        circle_marker_0564ae8ce5a715f3096cba27fe74054f.bindPopup(popup_ae236c91d6b4569c4674d1b350456255)
+        ;
+
+        
+    
+    
+            var circle_marker_8493fa2dcd675a96a9b6077702f053d6 = L.circleMarker(
+                [40.7127742, -74.0364857],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.373402825652732, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_ae44025cdc3bbcd51b33fcf87f4bff3b = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_6ec2fe292668ae3b2e588098b2ba7a64 = $(`<div id="html_6ec2fe292668ae3b2e588098b2ba7a64" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Essex Light Rail</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">4.89</td>                 <td style="padding: 4px; text-align: center;">4.93</td>                 <td style="padding: 4px; text-align: center;">9.82</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.29</td>                 <td style="padding: 4px; text-align: center;">2.89</td>                 <td style="padding: 4px; text-align: center;">6.18</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.75</td>                 <td style="padding: 4px; text-align: center;">2.86</td>                 <td style="padding: 4px; text-align: center;">4.61</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.50</td>                 <td style="padding: 4px; text-align: center;">0.61</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_ae44025cdc3bbcd51b33fcf87f4bff3b.setContent(html_6ec2fe292668ae3b2e588098b2ba7a64);
+            
+        
+
+        circle_marker_8493fa2dcd675a96a9b6077702f053d6.bindPopup(popup_ae44025cdc3bbcd51b33fcf87f4bff3b)
+        ;
+
+        
+    
+    
+            var circle_marker_f5654b3fd2f4c4493e8202e61f9858bf = L.circleMarker(
+                [40.74590996631558, -74.0572714805603],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.206675325427044, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_dcf7e6473131e974881480368c0ea3b5 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_cb4114b6d0b8b6a1138f811465b1e7e6 = $(`<div id="html_cb4114b6d0b8b6a1138f811465b1e7e6" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Leonard Gordon Park</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">3.61</td>                 <td style="padding: 4px; text-align: center;">0.14</td>                 <td style="padding: 4px; text-align: center;">3.75</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.68</td>                 <td style="padding: 4px; text-align: center;">1.68</td>                 <td style="padding: 4px; text-align: center;">2.36</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.29</td>                 <td style="padding: 4px; text-align: center;">1.36</td>                 <td style="padding: 4px; text-align: center;">1.65</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.21</td>                 <td style="padding: 4px; text-align: center;">1.11</td>                 <td style="padding: 4px; text-align: center;">1.32</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_dcf7e6473131e974881480368c0ea3b5.setContent(html_cb4114b6d0b8b6a1138f811465b1e7e6);
+            
+        
+
+        circle_marker_f5654b3fd2f4c4493e8202e61f9858bf.bindPopup(popup_dcf7e6473131e974881480368c0ea3b5)
+        ;
+
+        
+    
+    
+            var circle_marker_e47c4aace64f89e3d556cd78bdc0853b = L.circleMarker(
+                [40.7253399253558, -74.06762212514877],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.223831993558283, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_7965bb1e9a0c63aaa7352b140e631e1c = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_1d87a8073a7ec8c257172fe9084b15be = $(`<div id="html_1d87a8073a7ec8c257172fe9084b15be" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>McGinley Square</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">5.46</td>                 <td style="padding: 4px; text-align: center;">1.07</td>                 <td style="padding: 4px; text-align: center;">6.53</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.50</td>                 <td style="padding: 4px; text-align: center;">2.21</td>                 <td style="padding: 4px; text-align: center;">5.71</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.46</td>                 <td style="padding: 4px; text-align: center;">5.39</td>                 <td style="padding: 4px; text-align: center;">6.85</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.25</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.29</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_7965bb1e9a0c63aaa7352b140e631e1c.setContent(html_1d87a8073a7ec8c257172fe9084b15be);
+            
+        
+
+        circle_marker_e47c4aace64f89e3d556cd78bdc0853b.bindPopup(popup_7965bb1e9a0c63aaa7352b140e631e1c)
+        ;
+
+        
+    
+    
+            var circle_marker_5a7d36e916b614357584fd2d13f31234 = L.circleMarker(
+                [40.71835519823214, -74.03891444206238],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.060860536682563, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_7964ed57d4de9ff27cd871fe052226e1 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_d0dcfa54d86ca0c2b517f1b000b35a22 = $(`<div id="html_d0dcfa54d86ca0c2b517f1b000b35a22" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Columbus Drive</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">5.46</td>                 <td style="padding: 4px; text-align: center;">4.96</td>                 <td style="padding: 4px; text-align: center;">10.42</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">5.11</td>                 <td style="padding: 4px; text-align: center;">6.39</td>                 <td style="padding: 4px; text-align: center;">11.50</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">4.79</td>                 <td style="padding: 4px; text-align: center;">3.68</td>                 <td style="padding: 4px; text-align: center;">8.47</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.25</td>                 <td style="padding: 4px; text-align: center;">0.36</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_7964ed57d4de9ff27cd871fe052226e1.setContent(html_d0dcfa54d86ca0c2b517f1b000b35a22);
+            
+        
+
+        circle_marker_5a7d36e916b614357584fd2d13f31234.bindPopup(popup_7964ed57d4de9ff27cd871fe052226e1)
+        ;
+
+        
+    
+    
+            var circle_marker_bb10b3e7e8156ff9a1dad59dfee8a8e8 = L.circleMarker(
+                [40.722103786686034, -74.07145500183105],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.510235388865608, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_1cbf75dc5ffaadc50bc113ebfd963599 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_dfb09c8dd17b10a413d1b3e0e55336ee = $(`<div id="html_dfb09c8dd17b10a413d1b3e0e55336ee" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Bergen Ave</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">2.68</td>                 <td style="padding: 4px; text-align: center;">1.79</td>                 <td style="padding: 4px; text-align: center;">4.47</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">1.71</td>                 <td style="padding: 4px; text-align: center;">1.39</td>                 <td style="padding: 4px; text-align: center;">3.10</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.68</td>                 <td style="padding: 4px; text-align: center;">1.64</td>                 <td style="padding: 4px; text-align: center;">3.32</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.75</td>                 <td style="padding: 4px; text-align: center;">0.86</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_1cbf75dc5ffaadc50bc113ebfd963599.setContent(html_dfb09c8dd17b10a413d1b3e0e55336ee);
+            
+        
+
+        circle_marker_bb10b3e7e8156ff9a1dad59dfee8a8e8.bindPopup(popup_1cbf75dc5ffaadc50bc113ebfd963599)
+        ;
+
+        
+    
+    
+            var circle_marker_e9647fc8c9825762e7f79b90b451224c = L.circleMarker(
+                [40.71435836870427, -74.06661093235016],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.379779509418223, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_43ab251f51ec17dc6dd13359b20c7b62 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_947184323b7639fbde95f5c78948f02f = $(`<div id="html_947184323b7639fbde95f5c78948f02f" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Communipaw & Berry Lane</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">0.86</td>                 <td style="padding: 4px; text-align: center;">0.50</td>                 <td style="padding: 4px; text-align: center;">1.36</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">1.22</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.36</td>                 <td style="padding: 4px; text-align: center;">0.46</td>                 <td style="padding: 4px; text-align: center;">0.82</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.15</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_43ab251f51ec17dc6dd13359b20c7b62.setContent(html_947184323b7639fbde95f5c78948f02f);
+            
+        
+
+        circle_marker_e9647fc8c9825762e7f79b90b451224c.bindPopup(popup_43ab251f51ec17dc6dd13359b20c7b62)
+        ;
+
+        
+    
+    
+            var circle_marker_93f8d45df148da71510c01e0244876a0 = L.circleMarker(
+                [40.7246050998869, -74.07840594649315],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.392091149959865, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_f7341729bd133c20544cb838ebb154d6 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_811396f2432c7f27ce4ebd2fc1a74e04 = $(`<div id="html_811396f2432c7f27ce4ebd2fc1a74e04" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Lincoln Park</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">2.39</td>                 <td style="padding: 4px; text-align: center;">1.07</td>                 <td style="padding: 4px; text-align: center;">3.46</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">1.54</td>                 <td style="padding: 4px; text-align: center;">1.14</td>                 <td style="padding: 4px; text-align: center;">2.68</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.71</td>                 <td style="padding: 4px; text-align: center;">3.14</td>                 <td style="padding: 4px; text-align: center;">3.85</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.36</td>                 <td style="padding: 4px; text-align: center;">0.32</td>                 <td style="padding: 4px; text-align: center;">0.68</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_f7341729bd133c20544cb838ebb154d6.setContent(html_811396f2432c7f27ce4ebd2fc1a74e04);
+            
+        
+
+        circle_marker_93f8d45df148da71510c01e0244876a0.bindPopup(popup_f7341729bd133c20544cb838ebb154d6)
+        ;
+
+        
+    
+    
+            var circle_marker_37fd8fa1b64a568082ba419b963a0b3c = L.circleMarker(
+                [40.7443187, -74.0439909],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 5.530862670490296, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_d86191f2c5aa070059faf3ea2e4025fe = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_fe92cf47e80d0f36e5da49a4b2dbd4f3 = $(`<div id="html_fe92cf47e80d0f36e5da49a4b2dbd4f3" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Riverview Park</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">1.04</td>                 <td style="padding: 4px; text-align: center;">0.25</td>                 <td style="padding: 4px; text-align: center;">1.29</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.75</td>                 <td style="padding: 4px; text-align: center;">0.64</td>                 <td style="padding: 4px; text-align: center;">1.39</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.61</td>                 <td style="padding: 4px; text-align: center;">1.04</td>                 <td style="padding: 4px; text-align: center;">1.65</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.04</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_d86191f2c5aa070059faf3ea2e4025fe.setContent(html_fe92cf47e80d0f36e5da49a4b2dbd4f3);
+            
+        
+
+        circle_marker_37fd8fa1b64a568082ba419b963a0b3c.bindPopup(popup_d86191f2c5aa070059faf3ea2e4025fe)
+        ;
+
+        
+    
+    
+            var circle_marker_956d0712788c1a019cfc25853871ea6f = L.circleMarker(
+                [40.71848892, -74.047726625],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.951765814006162, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_3567aa91fa5b526bc4c745e67e4784b5 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_c9c8c4e5b57e93159eebd941980c325b = $(`<div id="html_c9c8c4e5b57e93159eebd941980c325b" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Van Vorst Park</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">8.54</td>                 <td style="padding: 4px; text-align: center;">2.04</td>                 <td style="padding: 4px; text-align: center;">10.58</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">4.50</td>                 <td style="padding: 4px; text-align: center;">5.79</td>                 <td style="padding: 4px; text-align: center;">10.29</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">2.43</td>                 <td style="padding: 4px; text-align: center;">5.07</td>                 <td style="padding: 4px; text-align: center;">7.50</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.29</td>                 <td style="padding: 4px; text-align: center;">0.46</td>                 <td style="padding: 4px; text-align: center;">0.75</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_3567aa91fa5b526bc4c745e67e4784b5.setContent(html_c9c8c4e5b57e93159eebd941980c325b);
+            
+        
+
+        circle_marker_956d0712788c1a019cfc25853871ea6f.bindPopup(popup_3567aa91fa5b526bc4c745e67e4784b5)
+        ;
+
+        
+    
+    
+            var circle_marker_507ab335eb980bc6df1a6b5c7c08f936 = L.circleMarker(
+                [40.70965083364061, -74.06860113143921],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 4.590407944786223, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_35783001b3aab2a751d6e8720b206722 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_20ff3a08a5b4c014efc54265fea96a60 = $(`<div id="html_20ff3a08a5b4c014efc54265fea96a60" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>JCBS Depot</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">0.14</td>                 <td style="padding: 4px; text-align: center;">0.32</td>                 <td style="padding: 4px; text-align: center;">0.46</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.11</td>                 <td style="padding: 4px; text-align: center;">0.15</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.04</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.00</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_35783001b3aab2a751d6e8720b206722.setContent(html_20ff3a08a5b4c014efc54265fea96a60);
+            
+        
+
+        circle_marker_507ab335eb980bc6df1a6b5c7c08f936.bindPopup(popup_35783001b3aab2a751d6e8720b206722)
+        ;
+
+        
+    
+    
+            var circle_marker_d40628802d33451402ca06eca99074de = L.circleMarker(
+                [40.71458403535893, -74.04281705617905],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.385313613874867, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_b2f173c185356e9577f47c05d163ed7b = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_828e6d3e7c6eebb4db5b5d449ba595da = $(`<div id="html_828e6d3e7c6eebb4db5b5d449ba595da" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Marin Light Rail</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">9.32</td>                 <td style="padding: 4px; text-align: center;">2.96</td>                 <td style="padding: 4px; text-align: center;">12.28</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">5.00</td>                 <td style="padding: 4px; text-align: center;">5.64</td>                 <td style="padding: 4px; text-align: center;">10.64</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">3.04</td>                 <td style="padding: 4px; text-align: center;">9.36</td>                 <td style="padding: 4px; text-align: center;">12.40</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.18</td>                 <td style="padding: 4px; text-align: center;">0.36</td>                 <td style="padding: 4px; text-align: center;">0.54</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_b2f173c185356e9577f47c05d163ed7b.setContent(html_828e6d3e7c6eebb4db5b5d449ba595da);
+            
+        
+
+        circle_marker_d40628802d33451402ca06eca99074de.bindPopup(popup_b2f173c185356e9577f47c05d163ed7b)
+        ;
+
+        
+    
+    
+            var circle_marker_7f15de6d8b89f7bd247303ee84a2ab90 = L.circleMarker(
+                [40.72568548362901, -74.04879033565521],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 7.800263332234513, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_5c291187dd4bb8fd5ddbf909a3182a5a = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_f137061060323f5885b7e3dea9fd3445 = $(`<div id="html_f137061060323f5885b7e3dea9fd3445" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Monmouth and 6th</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">8.36</td>                 <td style="padding: 4px; text-align: center;">1.25</td>                 <td style="padding: 4px; text-align: center;">9.61</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">3.18</td>                 <td style="padding: 4px; text-align: center;">3.43</td>                 <td style="padding: 4px; text-align: center;">6.61</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.61</td>                 <td style="padding: 4px; text-align: center;">8.32</td>                 <td style="padding: 4px; text-align: center;">9.93</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.57</td>                 <td style="padding: 4px; text-align: center;">0.21</td>                 <td style="padding: 4px; text-align: center;">0.78</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_5c291187dd4bb8fd5ddbf909a3182a5a.setContent(html_f137061060323f5885b7e3dea9fd3445);
+            
+        
+
+        circle_marker_7f15de6d8b89f7bd247303ee84a2ab90.bindPopup(popup_5c291187dd4bb8fd5ddbf909a3182a5a)
+        ;
+
+        
+    
+    
+            var circle_marker_b94ac1ca9e973bfbf3480d63293fa6b5 = L.circleMarker(
+                [40.7141454, -74.0335519],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 8.021714002110853, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_49dc9c5615721a785b48184e52803b8c = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_ec53c81e1e0943451051107e0fe63bb3 = $(`<div id="html_ec53c81e1e0943451051107e0fe63bb3" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Paulus Hook</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">2.14</td>                 <td style="padding: 4px; text-align: center;">8.79</td>                 <td style="padding: 4px; text-align: center;">10.93</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">7.79</td>                 <td style="padding: 4px; text-align: center;">4.82</td>                 <td style="padding: 4px; text-align: center;">12.61</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">4.50</td>                 <td style="padding: 4px; text-align: center;">2.04</td>                 <td style="padding: 4px; text-align: center;">6.54</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.08</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_49dc9c5615721a785b48184e52803b8c.setContent(html_ec53c81e1e0943451051107e0fe63bb3);
+            
+        
+
+        circle_marker_b94ac1ca9e973bfbf3480d63293fa6b5.bindPopup(popup_49dc9c5615721a785b48184e52803b8c)
+        ;
+
+        
+    
+    
+            var circle_marker_7a4b0a353b3f674ba4c8e74355ff3403 = L.circleMarker(
+                [40.7192517, -74.034234],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 9.125653385240112, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_ca2ac0c3c38f8a16782c81d94cb3d725 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_eb16a901ed43211851e39b9a6a0264d6 = $(`<div id="html_eb16a901ed43211851e39b9a6a0264d6" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>Harborside</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">6.29</td>                 <td style="padding: 4px; text-align: center;">13.89</td>                 <td style="padding: 4px; text-align: center;">20.18</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">9.57</td>                 <td style="padding: 4px; text-align: center;">5.79</td>                 <td style="padding: 4px; text-align: center;">15.36</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">7.71</td>                 <td style="padding: 4px; text-align: center;">4.46</td>                 <td style="padding: 4px; text-align: center;">12.17</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.57</td>                 <td style="padding: 4px; text-align: center;">0.71</td>                 <td style="padding: 4px; text-align: center;">1.28</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_ca2ac0c3c38f8a16782c81d94cb3d725.setContent(html_eb16a901ed43211851e39b9a6a0264d6);
+            
+        
+
+        circle_marker_7a4b0a353b3f674ba4c8e74355ff3403.bindPopup(popup_ca2ac0c3c38f8a16782c81d94cb3d725)
+        ;
+
+        
+    
+    
+            var circle_marker_831b5980b38d2c615dd4f5df0b567e29 = L.circleMarker(
+                [40.71649, -74.04105],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 6.626128657194451, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_4a56382e0bb55d1856c17624d1010390 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_abe293f1edb6eef775625a2728a3e824 = $(`<div id="html_abe293f1edb6eef775625a2728a3e824" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>York St</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">3.21</td>                 <td style="padding: 4px; text-align: center;">1.93</td>                 <td style="padding: 4px; text-align: center;">5.14</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">1.61</td>                 <td style="padding: 4px; text-align: center;">1.93</td>                 <td style="padding: 4px; text-align: center;">3.54</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">1.39</td>                 <td style="padding: 4px; text-align: center;">2.68</td>                 <td style="padding: 4px; text-align: center;">4.07</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.07</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.11</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_4a56382e0bb55d1856c17624d1010390.setContent(html_abe293f1edb6eef775625a2728a3e824);
+            
+        
+
+        circle_marker_831b5980b38d2c615dd4f5df0b567e29.bindPopup(popup_4a56382e0bb55d1856c17624d1010390)
+        ;
+
+        
+    
+    
+            var circle_marker_58a801d1e633a9ff1b193da8c727dd13 = L.circleMarker(
+                [40.738046142482766, -73.99642959237099],
+                {"bubblingMouseEvents": true, "color": "darkblue", "dashArray": null, "dashOffset": null, "fill": true, "fillColor": "blue", "fillOpacity": 0.7, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "opacity": 1.0, "radius": 4.146462185461838, "stroke": true, "weight": 3}
+            ).addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+        var popup_00a8fda906016c6db4ed21854e167481 = L.popup({
+  "maxWidth": 350,
+});
+
+        
+            
+                var html_4eaf68cad0a1b15169c2a87b3ed640e9 = $(`<div id="html_4eaf68cad0a1b15169c2a87b3ed640e9" style="width: 100.0%; height: 100.0%;">     <div style="font-family: Arial; font-size: 12px; width: 300px;">         <b>W 15 St & 6 Ave</b><br><br>         <table style="width: 100%; border-collapse: collapse;">             <tr style="background-color: #e0e0e0;">                 <th style="padding: 4px; text-align: left;">Period</th>                 <th style="padding: 4px;">Ср. число стартов</th>                 <th style="padding: 4px;">Ср. число окончаний</th>                 <th style="padding: 4px;">Ср. общее</th>             </tr>             <tr>                 <td style="padding: 4px;">Утро</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.00</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">День</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.00</td>             </tr>             <tr>                 <td style="padding: 4px;">Вечер</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.04</td>                 <td style="padding: 4px; text-align: center;">0.04</td>             </tr>             <tr style="background-color: #f5f5f5;">                 <td style="padding: 4px;">Ночь</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.00</td>                 <td style="padding: 4px; text-align: center;">0.00</td>             </tr>         </table>     </div>     </div>`)[0];
+                popup_00a8fda906016c6db4ed21854e167481.setContent(html_4eaf68cad0a1b15169c2a87b3ed640e9);
+            
+        
+
+        circle_marker_58a801d1e633a9ff1b193da8c727dd13.bindPopup(popup_00a8fda906016c6db4ed21854e167481)
+        ;
+
+        
+    
+    
+            tile_layer_9d2adb9b8c786db9f70a91ad6fe1fc5d.addTo(map_7d425cc97553aad517c2039390ead304);
+        
+    
+            heat_map_779f578a3d3469cdd7ac6fb79449a05f.addTo(map_7d425cc97553aad517c2039390ead304);
+        
+</script>
+</html>

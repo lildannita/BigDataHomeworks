@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+*.ipynb_checkpoints/
+
+# Временные данные
+workspace/hw3/tmp/
+# Слишком большие размеры данных
+workspace/data/ml-latest/*
+
+# Явно сохраняем эти файлы
+!.env.example
+!.gitignore

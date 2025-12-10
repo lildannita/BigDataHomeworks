@@ -1,0 +1,11 @@
+rank,movieId,similarity,common_users,title
+1,1223,0.995822,11,Grand Day Out with Wallace and Gromit, A (1989)
+2,82461,0.995054,11,Tron: Legacy (2010)
+3,7482,0.994651,12,Enter the Dragon (1973)
+4,119145,0.994354,17,Kingsman: The Secret Service (2015)
+5,33660,0.993120,10,Cinderella Man (2005)
+6,6586,0.992872,10,American Wedding (American Pie 3) (2003)
+7,27831,0.992559,14,Layer Cake (2004)
+8,1231,0.992442,12,Right Stuff, The (1983)
+9,86190,0.991156,10,Hanna (2011)
+10,4865,0.989886,12,From Hell (2001)

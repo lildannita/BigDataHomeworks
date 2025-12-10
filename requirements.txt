@@ -1,0 +1,36 @@
+# --- Spark ---
+pyspark==3.5.3
+
+# --- Telegram + Kafka ---
+telethon>=1.34.0
+kafka-python==2.0.2
+
+# --- Геоданные и визуализация ---
+folium>=0.15.0
+geopandas>=0.14.0
+shapely>=2.0.0
+
+# --- Общие зависимости ---
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=14.0.0
+
+# --- Jupyter / notebooks / PDF ---
+jupyterlab==4.*
+notebook==7.*
+nbformat>=5.9.0
+nbconvert>=7.16.0
+nbconvert[webpdf]
+pdfkit
+beautifulsoup4
+bokeh
+squarify
+openpyxl
+playwright
+
+# --- Дополнительная визуализация ---
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# --- Сравнение с классическими методами ---
+scikit-learn>=1.3.0
